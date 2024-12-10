@@ -2,4 +2,5 @@ pandas
 scikit-learn
 seaborn
 numpy
-abc
+
+-e .
