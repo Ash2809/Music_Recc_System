@@ -12,6 +12,12 @@ def preprocessor(path,output_path) -> pd.DataFrame:
     le=LabelEncoder()
     dataset["track_genre"]=le.fit_transform(dataset["track_genre"])
     dataset["artists"]=le.fit_transform(dataset["artists"])
+    
+    scaler = StandardScaler()
+    numeric_features = ["danceability", "energy", "tempo", "valence", "loudness", "speechiness",
+                        "acousticness", "instrumentalness", "liveness", "popularity", "duration_ms"]
+    
+    dataset[numeric_features] = scaler.fit_transform(dataset[numeric_features])
 
     dataset.to_csv(output_path, header = True, index = False)
     print(f"Preprocessed data saved to {output_path}")
