@@ -1,23 +1,53 @@
-from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import MinMaxScaler
+import pandas as pd
 import numpy as np
+import faiss
 
-def content_filter(data, top_n = 10, track_index):
+def content_filter(data, track_index, top_n=10):
     numerical_features = [
         "popularity", "duration_ms", "explicit", "danceability", "energy", "key",
         "loudness", "mode", "speechiness", "acousticness", "instrumentalness",
         "liveness", "valence", "tempo", "time_signature"
     ]
 
-    feature_matrix = data[numerical_features]
-    similarity_matrix = cosine_similarity(feature_matrix)
+    # Normalize numerical features
+    scaler = MinMaxScaler()
+    feature_matrix = scaler.fit_transform(data[numerical_features].values).astype('float32')
 
-    similar_tracks = similarity_matrix[track_index]
-    recommended_indices = np.argsort(similar_tracks)[::-1][:top_n + 1]
-    recommended_indices = [idx for idx in recommended_indices if idx != track_index]
+    # Build FAISS index
+    index = faiss.IndexFlatL2(feature_matrix.shape[1])  # L2 distance index
+    index.add(feature_matrix)
 
+    # Validate track_index
+    if track_index < 0 or track_index >= len(data):
+        raise IndexError("track_index is out of range.")
+    
+    # Query FAISS index
+    track_vector = feature_matrix[track_index].reshape(1, -1)
+    distances, indices = index.search(track_vector, top_n + 1)
+
+    # Exclude the input track itself
+    recommended_indices = indices[0][1:]  # Exclude the first match (itself)
+    recommended_distances = distances[0][1:]
+
+    # Convert distances to similarity scores
+    similarity_scores = [1 / (1 + dist) for dist in recommended_distances]
+
+    # Prepare recommendations
+    recommended_songs = data.iloc[recommended_indices].copy()
+    recommended_songs['similarity'] = similarity_scores
+
+    return recommended_songs
 
 if __name__ == "__main__":
     try:
-        content_filter()
+        # Load dataset
+        data = pd.read_csv(r"C:\Projects\Music_Recc_System\data\processed.csv")
+        track_index = 0  # Example: Index of the track to find similar tracks for
+        recommendations = content_filter(data, track_index, top_n=10)
+
+        # Display recommendations
+        print("Recommended Tracks:")
+        print(recommendations[['track_name', 'artists', 'similarity']])  # Adjust columns as needed
     except Exception as e:
-        print(f"An error occured while content filtering {e}")
+        print(f"An error occurred while content filtering: {e}")

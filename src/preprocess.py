@@ -5,13 +5,13 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 def preprocessor(path,output_path) -> pd.DataFrame:
     dataset = pd.read_csv(path)
 
-    dataset=dataset.drop(columns=["Unnamed: 0", "track_id", "album_name", "track_name"], axis = 1)
+    dataset=dataset.drop(columns=["Unnamed: 0", "track_id", "album_name"], axis = 1)
     dataset.dropna(inplace=True)
     dataset["explicit"]=dataset["explicit"].astype(int)
 
     le=LabelEncoder()
-    dataset["track_genre"]=le.fit_transform(dataset["track_genre"])
-    dataset["artists"]=le.fit_transform(dataset["artists"])
+    # dataset["track_genre"]=le.fit_transform(dataset["track_genre"])
+    # dataset["artists"]=le.fit_transform(dataset["artists"])
     
     scaler = StandardScaler()
     numeric_features = ["danceability", "energy", "tempo", "valence", "loudness", "speechiness",

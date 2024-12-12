@@ -3,4 +3,6 @@ scikit-learn
 seaborn
 numpy
 nltk
+faiss-cpu 
+
 -e .
