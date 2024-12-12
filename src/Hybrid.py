@@ -5,7 +5,7 @@ import faiss
 from src.Collaborative_filtering import collaborative_filter_genre
 from src.Content_filtering import content_filter
 
-def Hybrid_filter(dataset, track_index, top_n=10, weight=0.7):
+def Hybrid_filter(dataset, track_index, top_n=10, weight=0.2):
     content_recs = content_filter(dataset, track_index, top_n=top_n)
     content_scores = {i: score for i, score in zip(content_recs.index, content_recs["similarity"])}
 

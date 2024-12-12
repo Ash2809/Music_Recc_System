@@ -10,30 +10,23 @@ def content_filter(data, track_index, top_n=10):
         "liveness", "valence", "tempo", "time_signature"
     ]
 
-    # Normalize numerical features
     scaler = MinMaxScaler()
     feature_matrix = scaler.fit_transform(data[numerical_features].values).astype('float32')
 
-    # Build FAISS index
-    index = faiss.IndexFlatL2(feature_matrix.shape[1])  # L2 distance index
+    index = faiss.IndexFlatL2(feature_matrix.shape[1])  
     index.add(feature_matrix)
 
-    # Validate track_index
     if track_index < 0 or track_index >= len(data):
         raise IndexError("track_index is out of range.")
     
-    # Query FAISS index
     track_vector = feature_matrix[track_index].reshape(1, -1)
     distances, indices = index.search(track_vector, top_n + 1)
 
-    # Exclude the input track itself
-    recommended_indices = indices[0][1:]  # Exclude the first match (itself)
+    recommended_indices = indices[0][1:] 
     recommended_distances = distances[0][1:]
 
-    # Convert distances to similarity scores
     similarity_scores = [1 / (1 + dist) for dist in recommended_distances]
 
-    # Prepare recommendations
     recommended_songs = data.iloc[recommended_indices].copy()
     recommended_songs['similarity'] = similarity_scores
 
